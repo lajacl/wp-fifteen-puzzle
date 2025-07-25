@@ -1,7 +1,15 @@
 body {
+    font-family: sans-serif;
     margin: 0;
-    padding: 50px 50px 0 50px;
     background-color: yellow;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#main {
+    padding: 50px 50px 0 50px;
+    flex: 1;
 }
 
 h1#title {
@@ -30,6 +38,29 @@ h1#title {
 .tile {
     border: 2px solid black;
     align-content: center;
-    background-image: url(background.jpg);
+    background-image: url(images/background.jpg);
     background-repeat: no-repeat;
+}
+
+#shuffle {
+    text-align: center;
+}
+
+#shuffle-btn {
+    background-color: yellow;
+    color: red;
+    border: 3px solid red;
+    font-variant-caps: small-caps;
+    padding: 5px 10px;
+    font-weight: bold;
+}
+
+#shuffle-btn:hover {
+    color: indianred;
+    border: 3px solid indianred;
+}
+
+#footer {
+    text-align: right;
+    padding: 20px;
 }
