@@ -50,8 +50,17 @@ function updateMoveablePieces() {
         if ((tileSquare + numRowsCols == emptySquare) || (tileSquare - numRowsCols == emptySquare) ||
             (emptySquare % 4 != 0 && tileSquare - 1 == emptySquare) || (emptySquare % 4 != 1 && tileSquare + 1 == emptySquare)) {
             tile.classList.add('moveablepiece');
+            tile.addEventListener('click', moveTile);
         } else {
             tile.classList.remove('moveablepiece');
+            tile.removeEventListener('click', moveTile);
         }
     }
+}
+
+function moveTile(event) {
+    const tile = event.currentTarget;
+    const emptyTile = document.getElementById('empty-square');
+    [tile.style.gridArea, emptyTile.style.gridArea] = [emptyTile.style.gridArea, tile.style.gridArea];
+    updateMoveablePieces();
 }
