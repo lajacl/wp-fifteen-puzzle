@@ -1,11 +1,13 @@
 const numRowsCols = 4;
 const numTiles = Math.pow(numRowsCols, 2);
+const gridBoard = document.getElementById('grid-board');
+const message = document.getElementById('message');
+
 setupGame();
 
 function setupGame() {
     const boardSize = 400;
     const tileSize = 100;
-    const gridBoard = document.getElementById('grid-board');
     let imgX = 0;
     let imgY = 0;
 
@@ -34,8 +36,6 @@ function setupGame() {
 
     const shuffleBtn = document.getElementById('shuffle-btn');
     shuffleBtn.addEventListener('click', shuffleTiles);
-
-    updateMoveablePieces();
 }
 
 function updateMoveablePieces() {
@@ -50,8 +50,10 @@ function updateMoveablePieces() {
         const tileGridArea = tile.style.gridArea;
         const tileSquare = Number(tileGridArea.replace('square-', ''));
 
-        if ((tileSquare + numRowsCols == emptySquare) || (tileSquare - numRowsCols == emptySquare) ||
-            (emptySquare % 4 != 0 && tileSquare - 1 == emptySquare) || (emptySquare % 4 != 1 && tileSquare + 1 == emptySquare)) {
+        if ((tileSquare + numRowsCols == emptySquare) ||    // Tile is below empty square
+            (tileSquare - numRowsCols == emptySquare) ||    // Tile is above empty square
+            (emptySquare % numRowsCols != 0 && tileSquare - 1 == emptySquare) ||    // Tile is to the right of empty square
+            (emptySquare % numRowsCols != 1 && tileSquare + 1 == emptySquare)) {    // Tile is to the left of empty square
             tile.classList.add('moveablepiece');
             tile.addEventListener('click', moveTile);
         } else {
@@ -66,6 +68,17 @@ function moveTile(event) {
     const emptyTile = document.getElementById('empty-square');
     [tile.style.gridArea, emptyTile.style.gridArea] = [emptyTile.style.gridArea, tile.style.gridArea];
     updateMoveablePieces();
+    if (isPuzzleSolved()) {
+        playSound('win.wav');
+        message.textContent = '🎉 You solved the puzzle and won!'
+        const tiles = document.getElementsByClassName('tile');
+        for (const tile of tiles) {
+            tile.removeEventListener('click', moveTile);
+            tile.classList.remove('moveablepiece');
+            tile.style.display = 'none';
+        };
+        gridBoard.classList.add('solved');
+    }
 }
 
 function shuffleTiles() {
@@ -73,6 +86,13 @@ function shuffleTiles() {
     const numMoveTypes = 4;
     const tiles = document.getElementsByClassName('tile');
     const emptyTile = document.getElementById('empty-square');
+
+    message.innerHTML = '&nbsp;';
+
+    gridBoard.classList.remove('solved');
+    for (const tile of tiles) {
+        tile.style.removeProperty('display');
+    };
 
     for (let i = 1; i <= numShifts;) {
         const emptyGridArea = emptyTile.style.gridArea;
@@ -126,5 +146,22 @@ function shuffleTiles() {
         }
     }
 
+    if (isPuzzleSolved()) shuffleTiles();
+
     updateMoveablePieces();
+}
+
+function isPuzzleSolved() {
+    const tiles = document.getElementsByClassName('tile');
+
+    for (const tile of tiles) {
+        if (tile.dataset.homeSquare != tile.style.gridArea) return false;
+    }
+
+    return true;
+}
+
+function playSound(filename) {
+    const audio = new Audio(`audio/${filename}`);
+    audio.play();
 }
