@@ -3,6 +3,10 @@ const numTiles = Math.pow(numRowsCols, 2);
 const gridBoard = document.getElementById('grid-board');
 const message = document.getElementById('message');
 
+let playInterval;
+let solveTime = 0;
+let movesCount = 0;
+
 setupGame();
 
 function setupGame() {
@@ -81,17 +85,22 @@ function moveTile(event) {
     const yShift = tile.dataset.yShift;
     const emptyTile = document.getElementById('empty-square');
 
+    playSound('slide.mp3');
     tile.style.transition = 'transform 0.2s ease-out';
     tile.style.transform = `translate(${xShift}, ${yShift})`;
     setTimeout(() => {
+        movesCount++;
         tile.style.transition = 'none';
         tile.style.removeProperty('transform');
         [tile.style.gridArea, emptyTile.style.gridArea] = [emptyTile.style.gridArea, tile.style.gridArea];
         updateMoveablePieces();
 
         if (isPuzzleSolved()) {
+            clearInterval(playInterval);
+            const bgSong = document.getElementById('bg-song');
+            bgSong.pause();
             playSound('win.wav');
-            message.textContent = '🎉 You solved the puzzle and won!'
+            message.textContent = `🎉 You solved the puzzle and won! Time: ${solveTime}s | Moves: ${movesCount}`;
             const tiles = document.getElementsByClassName('tile');
             for (const tile of tiles) {
                 tile.removeEventListener('click', moveTile);
@@ -172,6 +181,7 @@ function shuffleTiles() {
     if (isPuzzleSolved()) shuffleTiles();
 
     updateMoveablePieces();
+    resetGame();
 }
 
 function isPuzzleSolved() {
@@ -182,6 +192,20 @@ function isPuzzleSolved() {
     }
 
     return true;
+}
+
+function resetGame() {
+    solveTime = 0;
+    movesCount = 0;
+
+    const bgSong = document.getElementById('bg-song');
+    bgSong.loop = true;
+    bgSong.volume = 0.2;
+    bgSong.play();
+
+    playInterval = setInterval(() => {
+        solveTime++;
+    }, 1000);
 }
 
 function playSound(filename) {
