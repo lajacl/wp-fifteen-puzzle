@@ -50,12 +50,17 @@ function updateMoveablePieces() {
         const tileGridArea = tile.style.gridArea;
         const tileSquare = Number(tileGridArea.replace('square-', ''));
 
-        if ((tileSquare + numRowsCols == emptySquare) ||    // Tile is below empty square
-            (tileSquare - numRowsCols == emptySquare) ||    // Tile is above empty square
-            (emptySquare % numRowsCols != 0 && tileSquare - 1 == emptySquare) ||    // Tile is to the right of empty square
-            (emptySquare % numRowsCols != 1 && tileSquare + 1 == emptySquare)) {    // Tile is to the left of empty square
-            tile.classList.add('moveablepiece');
-            tile.addEventListener('click', moveTile);
+        delete tile.dataset.xShift;
+        delete tile.dataset.yShift;
+
+        if (tileSquare + numRowsCols == emptySquare) {    // Tile is below empty square
+            updateTile(tile, 0, 100);
+        } else if (tileSquare - numRowsCols == emptySquare) {    // Tile is above empty square
+            updateTile(tile, 0, -100);
+        } else if (emptySquare % numRowsCols != 0 && tileSquare - 1 == emptySquare) {    // Tile is to the right of empty square
+            updateTile(tile, -100, 0);
+        } else if (emptySquare % numRowsCols != 1 && tileSquare + 1 == emptySquare) {    // Tile is to the left of empty square
+            updateTile(tile, 100, 0);
         } else {
             tile.classList.remove('moveablepiece');
             tile.removeEventListener('click', moveTile);
@@ -63,22 +68,39 @@ function updateMoveablePieces() {
     }
 }
 
+function updateTile(tile, xShift, yShift) {
+    tile.classList.add('moveablepiece');
+    tile.addEventListener('click', moveTile);
+    tile.dataset.xShift = `${xShift}px`;
+    tile.dataset.yShift = `${yShift}px`;
+}
+
 function moveTile(event) {
     const tile = event.currentTarget;
+    const xShift = tile.dataset.xShift;
+    const yShift = tile.dataset.yShift;
     const emptyTile = document.getElementById('empty-square');
-    [tile.style.gridArea, emptyTile.style.gridArea] = [emptyTile.style.gridArea, tile.style.gridArea];
-    updateMoveablePieces();
-    if (isPuzzleSolved()) {
-        playSound('win.wav');
-        message.textContent = '🎉 You solved the puzzle and won!'
-        const tiles = document.getElementsByClassName('tile');
-        for (const tile of tiles) {
-            tile.removeEventListener('click', moveTile);
-            tile.classList.remove('moveablepiece');
-            tile.style.display = 'none';
-        };
-        gridBoard.classList.add('solved');
-    }
+
+    tile.style.transition = 'transform 0.2s ease-out';
+    tile.style.transform = `translate(${xShift}, ${yShift})`;
+    setTimeout(() => {
+        tile.style.transition = 'none';
+        tile.style.removeProperty('transform');
+        [tile.style.gridArea, emptyTile.style.gridArea] = [emptyTile.style.gridArea, tile.style.gridArea];
+        updateMoveablePieces();
+
+        if (isPuzzleSolved()) {
+            playSound('win.wav');
+            message.textContent = '🎉 You solved the puzzle and won!'
+            const tiles = document.getElementsByClassName('tile');
+            for (const tile of tiles) {
+                tile.removeEventListener('click', moveTile);
+                tile.classList.remove('moveablepiece');
+                tile.style.display = 'none';
+            };
+            gridBoard.classList.add('solved');
+        }
+    }, 200);
 }
 
 function shuffleTiles() {
@@ -92,6 +114,7 @@ function shuffleTiles() {
     gridBoard.classList.remove('solved');
     for (const tile of tiles) {
         tile.style.removeProperty('display');
+        tile.style.transition = '';
     };
 
     for (let i = 1; i <= numShifts;) {
