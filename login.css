@@ -1,0 +1,74 @@
+body {
+    margin: 0;
+    font-family: sans-serif;
+    background-color: #D7D3E0;
+}
+
+#main {
+    text-align: center;
+}
+
+h1#title {
+    color: #125982;
+    font-variant-caps: small-caps;
+    background-color: white;
+    border: 4px solid greenyellow;
+    box-sizing: border-box;
+    width: 400px;
+    margin: 20px auto;
+    padding: 10px;
+}
+
+table#login {
+    margin: 20px auto;
+    font-weight: bold;
+    padding: 10px;
+}
+
+input {
+    margin: 4px;
+    height: 25px;
+    border: none;
+}
+
+input[type="radio"] {
+    accent-color: greenyellow;
+}
+
+button {
+    min-width: 10%;
+    font-weight: bold;
+    background-color: #125982;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin: 10px;
+}
+
+button:hover {
+    color: greenyellow;
+}
+
+img#demo {
+    max-height: 400px;
+    margin: 20px;
+}
+
+#error {
+    color: red;
+    text-align: center;
+}
+
+.fade-in {
+    animation: fadeIn 3s forwards;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}

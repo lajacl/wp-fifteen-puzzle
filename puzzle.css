@@ -7,6 +7,28 @@ body {
     flex-direction: column;
 }
 
+#menu {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-weight: bold;
+}
+
+button#menu-btn {
+    min-width: 100px;
+    font-weight: bold;
+    background-color: #125982;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin-left: 10px;
+    border: 2px solid greenyellow
+}
+
+button#menu-btn:hover {
+    color: greenyellow;
+}
+
 #main {
     padding: 50px 50px 0 50px;
     flex: 1;
@@ -64,15 +86,11 @@ h1#title {
     background-image: url(images/background.jpg);
 }
 
-.tile-solved {
-    border-color: transparent;
-}
-
-#shuffle {
+div#shuffle {
     text-align: center;
 }
 
-#shuffle-btn {
+button#shuffle-btn {
     background-color: yellow;
     color: red;
     border: 3px solid red;
@@ -82,7 +100,7 @@ h1#title {
     margin: 50px;
 }
 
-#shuffle-btn:hover {
+button#shuffle-btn:hover {
     color: indianred;
     border: 3px solid indianred;
 }
