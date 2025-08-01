@@ -1,6 +1,6 @@
 const radioButtons = document.querySelectorAll('input[name="input_type"]');
 const passwordInput = document.getElementById("password");
-const emailContainer = document.getElementById('email_container');
+const emailContainer = document.getElementById('email-container');
 
 
 radioButtons.forEach(radio => {
@@ -17,7 +17,7 @@ function updateEmail(radio) {
             emailContainer.style.display = 'none';
         } else if (selectedValue === 'register') {
             passwordInput.setAttribute('autocomplete', 'new-password');
-            emailContainer.style.display = '';
+            emailContainer.style.display = 'block';
         }
     }
 }

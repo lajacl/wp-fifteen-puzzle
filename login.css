@@ -35,6 +35,10 @@ input[type="radio"] {
     accent-color: greenyellow;
 }
 
+#email-container {
+    display: none;
+}
+
 button {
     min-width: 10%;
     font-weight: bold;

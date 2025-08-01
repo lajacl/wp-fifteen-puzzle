@@ -16,7 +16,7 @@ $input_type;
 $username = "";
 $password = "";
 $email = "";
-$error_msg;
+$error_msg = "";
 $default_role = 'player';
 
 date_default_timezone_set("America/New_York");
@@ -46,7 +46,7 @@ if (isset($_GET['redirect'])) {
         $result = $conn->query($sql);
 
         if ($result->num_rows > 0) {
-
+            $row = $result->fetch_assoc();
             if (password_verify($password, $row["password_hash"])) {
                 $_SESSION['puzzle']['user_id'] = $row["user_id"];
                 $_SESSION['puzzle']['username'] = $row["username"];
@@ -62,7 +62,7 @@ if (isset($_GET['redirect'])) {
                 $error_msg = "Invalid login credentials.";
             }
         } else {
-            $error_msg = "Username not found.";
+            $error_msg = "Invalid login credentials.";
         }
     } elseif ($input_type == "register") {
         $sql = "SELECT username FROM users WHERE username = '{$username}'";
@@ -100,7 +100,7 @@ $conn->close();
 
 <head>
     <link rel="stylesheet" type="text/css" href="login.css">
-    <link rel="icon" href="images/icon.png">
+    <link rel="icon" type="image/x-icon" href="images/icon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fifteen Puzzle</title>
@@ -124,10 +124,11 @@ $conn->close();
                 </tr>
                 <tr>
                     <td>
-                        <input id="password" type="password" name="password" placeholder="Password" value="<?php echo $password; ?>">
+                        <input id="password" type="password" name="password" placeholder="Password"
+                            value="<?php echo $password; ?>">
                     </td>
                 </tr>
-                <tr id="email_container">
+                <tr id="email-container">
                     <td>
                         <input id="email" type="email" name="email" placeholder="Email" value="<?php echo $email; ?>"
                             autocomplete="email">
@@ -145,11 +146,10 @@ $conn->close();
                     </td>
                 </tr>
             </table>
-
-            <img id="demo" src="images/fifteen_puzzle.gif" alt="fifteen puzzle">
         </form>
+        <img id="demo" src="images/fifteen_puzzle.gif" alt="fifteen puzzle">
     </div>
     <script src="login.js"></script>
-</body>
+    </body>
 
 </html>
