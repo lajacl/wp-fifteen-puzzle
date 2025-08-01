@@ -6,6 +6,11 @@ const message = document.getElementById('message');
 let playInterval;
 let solveTime = 0;
 let movesCount = 0;
+let background = {
+    id: 1,
+    name: "Bob's Burger's",
+    path: "bob's_burgers.jpg"
+};
 
 setupGame();
 
@@ -24,7 +29,7 @@ function setupGame() {
         div.style.gridArea = homeSquare;
 
         if (i != numTiles) {
-            div.style.backgroundImage = 'url(images/background.jpg)';
+            div.style.backgroundImage = `url("backgrounds/${background.path}")`;
             div.style.backgroundRepeat = 'no-repeat';
             div.style.backgroundPositionX = `${imgX}px`;
             div.style.backgroundPositionY = `${imgY}px`;
@@ -38,78 +43,49 @@ function setupGame() {
         gridBoard.appendChild(div);
     }
 
+    setupGallery();
+
     const shuffleBtn = document.getElementById('shuffle-btn');
     shuffleBtn.addEventListener('click', shuffleTiles);
 }
 
-function updateMoveablePieces() {
-    const emptyTile = document.getElementById('empty-square');
-    const emptyGridArea = emptyTile.style.gridArea;
-    const emptySquare = Number(emptyGridArea.replace('square-', ''));
-    const tiles = document.getElementsByClassName('tile');
+function setupGallery() {
+    const galleryContainer = document.getElementById('gallery-container');
+    const galleryClose = document.getElementById('gallery-close');
+    const backgroundOpt = document.getElementById('bg-opt');
+    const bgImages = document.getElementsByClassName('bg-img');
+    const uploadMsg = document.getElementById('upload-msg');
 
-    for (const tile of tiles) {
-        if (tile.id == 'empty-square') return;
+    backgroundOpt.addEventListener('click', () => {
+        uploadMsg.textContent = '';
+        galleryContainer.style.display = 'block';
+    });
 
-        const tileGridArea = tile.style.gridArea;
-        const tileSquare = Number(tileGridArea.replace('square-', ''));
+    galleryClose.addEventListener('click', () => {
+        galleryContainer.style.display = 'none';
+        uploadMsg.textContent = '';
 
-        delete tile.dataset.xShift;
-        delete tile.dataset.yShift;
+    });
 
-        if (tileSquare + numRowsCols == emptySquare) {    // Tile is below empty square
-            updateTile(tile, 0, 100);
-        } else if (tileSquare - numRowsCols == emptySquare) {    // Tile is above empty square
-            updateTile(tile, 0, -100);
-        } else if (emptySquare % numRowsCols != 0 && tileSquare - 1 == emptySquare) {    // Tile is to the right of empty square
-            updateTile(tile, -100, 0);
-        } else if (emptySquare % numRowsCols != 1 && tileSquare + 1 == emptySquare) {    // Tile is to the left of empty square
-            updateTile(tile, 100, 0);
-        } else {
-            tile.classList.remove('moveablepiece');
-            tile.removeEventListener('click', moveTile);
-        }
-    }
-}
+    for (const img of bgImages) {
+        img.addEventListener('click', function () {
+            background = {
+                id: this.dataset.bgId,
+                name: this.dataset.bgName,
+                path: this.dataset.bgPath
+            };
+            console.log("BG clicked", background);
 
-function updateTile(tile, xShift, yShift) {
-    tile.classList.add('moveablepiece');
-    tile.addEventListener('click', moveTile);
-    tile.dataset.xShift = `${xShift}px`;
-    tile.dataset.yShift = `${yShift}px`;
-}
-
-function moveTile(event) {
-    const tile = event.currentTarget;
-    const xShift = tile.dataset.xShift;
-    const yShift = tile.dataset.yShift;
-    const emptyTile = document.getElementById('empty-square');
-
-    playSound('slide.mp3');
-    tile.style.transition = 'transform 0.2s ease-out';
-    tile.style.transform = `translate(${xShift}, ${yShift})`;
-    setTimeout(() => {
-        movesCount++;
-        tile.style.transition = 'none';
-        tile.style.removeProperty('transform');
-        [tile.style.gridArea, emptyTile.style.gridArea] = [emptyTile.style.gridArea, tile.style.gridArea];
-        updateMoveablePieces();
-
-        if (isPuzzleSolved()) {
-            clearInterval(playInterval);
-            const bgSong = document.getElementById('bg-song');
-            bgSong.pause();
-            playSound('win.wav');
-            message.textContent = `🎉 You solved the puzzle and won! Time: ${solveTime}s | Moves: ${movesCount}`;
             const tiles = document.getElementsByClassName('tile');
             for (const tile of tiles) {
-                tile.removeEventListener('click', moveTile);
-                tile.classList.remove('moveablepiece');
-                tile.style.display = 'none';
-            };
-            gridBoard.classList.add('solved');
-        }
-    }, 200);
+                if (tile.id != "empty-square") {
+                    tile.style.backgroundImage = `url("backgrounds/${background.path}")`;
+                }
+            }
+
+            galleryContainer.style.display = 'none';
+        });
+    }
 }
 
 function shuffleTiles() {
@@ -119,12 +95,13 @@ function shuffleTiles() {
     const emptyTile = document.getElementById('empty-square');
 
     message.innerHTML = '&nbsp;';
+    gridBoard.style.borderWidth = '';
+    gridBoard.style.backgroundImage = '';
 
-    gridBoard.classList.remove('solved');
     for (const tile of tiles) {
         tile.style.removeProperty('display');
         tile.style.transition = '';
-    };
+    }
 
     for (let i = 1; i <= numShifts;) {
         const emptyGridArea = emptyTile.style.gridArea;
@@ -184,6 +161,78 @@ function shuffleTiles() {
     resetGame();
 }
 
+function moveTile(event) {
+    const tile = event.currentTarget;
+    const xShift = tile.dataset.xShift;
+    const yShift = tile.dataset.yShift;
+    const emptyTile = document.getElementById('empty-square');
+
+    playSound('slide.mp3');
+    tile.style.transition = 'transform 0.2s ease-out';
+    tile.style.transform = `translate(${xShift}, ${yShift})`;
+    setTimeout(() => {
+        movesCount++;
+        tile.style.transition = 'none';
+        tile.style.removeProperty('transform');
+        [tile.style.gridArea, emptyTile.style.gridArea] = [emptyTile.style.gridArea, tile.style.gridArea];
+        updateMoveablePieces();
+
+        if (isPuzzleSolved()) {
+            clearInterval(playInterval);
+            const bgSong = document.getElementById('bg-song');
+            bgSong.pause();
+            playSound('win.wav');
+            message.textContent = `🎉 You solved the puzzle and won! Time: ${solveTime}s | Moves: ${movesCount}`;
+            const tiles = document.getElementsByClassName('tile');
+            for (const tile of tiles) {
+                tile.removeEventListener('click', moveTile);
+                tile.classList.remove('moveablepiece');
+                tile.style.display = 'none';
+            }
+
+            gridBoard.style.backgroundImage = `url("backgrounds/${background.path}")`;
+            gridBoard.style.borderWidth = '4px';
+        }
+    }, 200);
+}
+
+function updateMoveablePieces() {
+    const emptyTile = document.getElementById('empty-square');
+    const emptyGridArea = emptyTile.style.gridArea;
+    const emptySquare = Number(emptyGridArea.replace('square-', ''));
+    const tiles = document.getElementsByClassName('tile');
+
+    for (const tile of tiles) {
+        if (tile.id == 'empty-square') return;
+
+        const tileGridArea = tile.style.gridArea;
+        const tileSquare = Number(tileGridArea.replace('square-', ''));
+
+        delete tile.dataset.xShift;
+        delete tile.dataset.yShift;
+
+        if (tileSquare + numRowsCols == emptySquare) {    // Tile is below empty square
+            updateTile(tile, 0, 100);
+        } else if (tileSquare - numRowsCols == emptySquare) {    // Tile is above empty square
+            updateTile(tile, 0, -100);
+        } else if (emptySquare % numRowsCols != 0 && tileSquare - 1 == emptySquare) {    // Tile is to the right of empty square
+            updateTile(tile, -100, 0);
+        } else if (emptySquare % numRowsCols != 1 && tileSquare + 1 == emptySquare) {    // Tile is to the left of empty square
+            updateTile(tile, 100, 0);
+        } else {
+            tile.classList.remove('moveablepiece');
+            tile.removeEventListener('click', moveTile);
+        }
+    }
+}
+
+function updateTile(tile, xShift, yShift) {
+    tile.classList.add('moveablepiece');
+    tile.addEventListener('click', moveTile);
+    tile.dataset.xShift = `${xShift}px`;
+    tile.dataset.yShift = `${yShift}px`;
+}
+
 function isPuzzleSolved() {
     const tiles = document.getElementsByClassName('tile');
 
@@ -210,5 +259,6 @@ function resetGame() {
 
 function playSound(filename) {
     const audio = new Audio(`audio/${filename}`);
+    audio.volume = 0.5;
     audio.play();
 }

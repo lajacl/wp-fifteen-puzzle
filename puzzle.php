@@ -5,20 +5,34 @@
 -->
 <?php
 session_start();
-if (!$_SESSION['puzzle']['user_id']) {
+if (!isset($_SESSION['puzzle']['user_id'])) {
     header('Location: login.php?redirect');
     exit;
 }
 
 require 'database.php';
+require 'uploader.php';
 
 $username = $_SESSION['puzzle']['username'];
+$backgrounds = [];
+
+$sql = "SELECT image_id, image_name, image_url FROM background_images WHERE is_active = TRUE ORDER BY image_id DESC";
+$result = $conn->query($sql);
+
+while ($row = $result->fetch_assoc()) {
+    $bg = array('id' => $row['image_id'], 'name' => $row['image_name'], 'path' => $row['image_url']);
+    $backgrounds[] = $bg;
+}
+
+$conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <link rel="stylesheet" type="text/css" href="puzzle.css">
+    <link rel="stylesheet" type="text/css" href="uploader.css">
+    <link rel="icon" type="image/x-icon" href="images/icon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fifteen Puzzle</title>
@@ -26,11 +40,17 @@ $username = $_SESSION['puzzle']['username'];
 
 <body>
     <div id="menu">
-        <form action="login.php" method="post">
-            <?php echo $username; ?>
-            <button id="menu-btn" type="submit" id="btn" name="logout" value="true">Logout</button>
-        </form>
+        <?php echo $username; ?>
+        <button id="menu-btn">Menu</button>
+        <div id="menu-opts">
+            <form action="login.php" method="post">
+                <a id="account-opt">View My Account</a>
+                <a id="bg-opt">Change Background</a>
+                <a><button id="logout-btn" type="submit" id="btn" name="logout" value="true">Logout</button></a>
+            </form>
+        </div>
     </div>
+
     <div id="main">
         <h1 id="title">Bob's Burgers Sliding Puzzle</h1>
         <div id="message">&nbsp;</div>
@@ -43,8 +63,32 @@ $username = $_SESSION['puzzle']['username'];
         <a href="https://jigsaw.w3.org/css-validator/"><img src="images/w3c-css.png"></a>
     </div>
 
-    <audio id="bg-song" src="audio/bg-song.mp3"></audio>
+    <div id="gallery-container">
+        <div id="gallery-header">
+            <h3>Choose a Puzzle Background Below<br>
+                <form id="upload-form" action="puzzle.php" method="post" enctype="multipart/form-data">
+                    or upload one
+                    <input type="file" accept=".png, .jpg, .jpeg, .webp, .bmp" name="fileToUpload" required>
+                    <input id="upload-btn" type="submit" value="Upload File" name="submit">
+                </form>
+            </h3>
+            <span id="gallery-close">&times;</span>
+            <div id="upload-msg"><?php if (!empty($file_upload_msg))
+                echo $file_upload_msg; ?></div>
+        </div>
+        <div id="gallery">
+            <?php if (!empty($backgrounds)) {
+                foreach ($backgrounds as $bg) {
+                    echo '<div class="gallery-item">
+                    <img class="bg-img" src="backgrounds/' . $bg['path'] . '" data-bg-id="' . $bg['id'] . '" data-bg-name="' . $bg['name'] . '" data-bg-path="' . $bg['path'] . '">
+                    <div class="bg-name">' . $bg['name'] . '</div>
+                    </div>';
+                }
+            } ?>
+        </div>
+    </div>
 
+    <audio id="bg-song" src="audio/bg-song.mp3"></audio>
     <script src="puzzle.js"></script>
 </body>
 
