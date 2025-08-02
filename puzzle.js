@@ -11,8 +11,32 @@ let background = {
     name: "Bob's Burger's",
     path: "bob's_burgers.jpg"
 };
+let state;
 
-setupGame();
+window.onload = function () {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if (urlParams.get('action') === 'stats') {
+        solveTime = urlParams.get('time');
+        movesCount = urlParams.get('moves');
+        background = JSON.parse(urlParams.get('bg'));
+        state = 'end';
+
+        setupGame();
+        message.textContent = `🎉 You solved the puzzle and won! Time: ${solveTime}s | Moves: ${movesCount}`;
+        const tiles = document.getElementsByClassName('tile');
+        for (const tile of tiles) {
+            tile.removeEventListener('click', moveTile);
+            tile.classList.remove('moveablepiece');
+            tile.style.display = 'none';
+        }
+
+        gridBoard.style.backgroundImage = `url("backgrounds/${background.path}")`;
+        gridBoard.style.borderWidth = '4px';
+    } else {
+        setupGame();
+    }
+};
 
 function setupGame() {
     const boardSize = 400;
@@ -20,6 +44,7 @@ function setupGame() {
     let imgX = 0;
     let imgY = 0;
 
+    document.getElementById('current_bg').value = JSON.stringify(background);
     for (let i = 1; i <= numTiles; i++) {
         const homeSquare = `square-${i}`;
         const div = document.createElement('div');
@@ -69,12 +94,8 @@ function setupGallery() {
 
     for (const img of bgImages) {
         img.addEventListener('click', function () {
-            background = {
-                id: this.dataset.bgId,
-                name: this.dataset.bgName,
-                path: this.dataset.bgPath
-            };
-            console.log("BG clicked", background);
+            background = JSON.parse(this.dataset.bg);
+            document.getElementById('current_bg').value = JSON.stringify(background);
 
             const tiles = document.getElementsByClassName('tile');
             for (const tile of tiles) {
@@ -82,6 +103,8 @@ function setupGallery() {
                     tile.style.backgroundImage = `url("backgrounds/${background.path}")`;
                 }
             }
+
+            if (state == 'end') gridBoard.style.backgroundImage = `url("backgrounds/${background.path}")`;
 
             galleryContainer.style.display = 'none';
         });
@@ -94,6 +117,7 @@ function shuffleTiles() {
     const tiles = document.getElementsByClassName('tile');
     const emptyTile = document.getElementById('empty-square');
 
+    state = '';
     message.innerHTML = '&nbsp;';
     gridBoard.style.borderWidth = '';
     gridBoard.style.backgroundImage = '';
@@ -166,6 +190,7 @@ function moveTile(event) {
     const xShift = tile.dataset.xShift;
     const yShift = tile.dataset.yShift;
     const emptyTile = document.getElementById('empty-square');
+    const bgSong = document.getElementById('bg-song');
 
     playSound('slide.mp3');
     tile.style.transition = 'transform 0.2s ease-out';
@@ -179,19 +204,13 @@ function moveTile(event) {
 
         if (isPuzzleSolved()) {
             clearInterval(playInterval);
-            const bgSong = document.getElementById('bg-song');
-            bgSong.pause();
             playSound('win.wav');
-            message.textContent = `🎉 You solved the puzzle and won! Time: ${solveTime}s | Moves: ${movesCount}`;
-            const tiles = document.getElementsByClassName('tile');
-            for (const tile of tiles) {
-                tile.removeEventListener('click', moveTile);
-                tile.classList.remove('moveablepiece');
-                tile.style.display = 'none';
-            }
 
-            gridBoard.style.backgroundImage = `url("backgrounds/${background.path}")`;
-            gridBoard.style.borderWidth = '4px';
+            setTimeout(() => {
+                document.getElementById('game_time').value = solveTime;
+                document.getElementById('game_moves').value = movesCount;
+                document.getElementById('stats-btn').click();
+            }, 2000);
         }
     }, 200);
 }
@@ -203,7 +222,7 @@ function updateMoveablePieces() {
     const tiles = document.getElementsByClassName('tile');
 
     for (const tile of tiles) {
-        if (tile.id == 'empty-square') return;
+        if (tile.id == 'empty-square') continue;
 
         const tileGridArea = tile.style.gridArea;
         const tileSquare = Number(tileGridArea.replace('square-', ''));

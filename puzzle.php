@@ -1,4 +1,5 @@
-<!-- Project Extra Key Features:
+<!--
+    Project Extra Key Features:
     1. End-of-game notification
     2. Animations and/or transitions
     3. Game time with some music file
@@ -22,6 +23,24 @@ $result = $conn->query($sql);
 while ($row = $result->fetch_assoc()) {
     $bg = array('id' => $row['image_id'], 'name' => $row['image_name'], 'path' => $row['image_url']);
     $backgrounds[] = $bg;
+}
+
+if (isset($_POST['submit']) && $_POST['submit'] == 'stats') {
+    unset($_POST['submit']);
+
+    $time = $_POST['time'];
+    $moves = $_POST['moves'];
+    $bg_id = json_decode($_POST['current_bg'], true)['id'];
+    date_default_timezone_set("America/New_York");
+    $date = date("Y-m-d");
+
+    $sql = "INSERT INTO game_stats (user_id, puzzle_size, time_taken_seconds, moves_count, background_image_id, win_status, game_date)
+        VALUES ('{$_SESSION['puzzle']['user_id']}', '4x4', '$time', '$moves', '$bg_id', true, '$date')";
+
+    if ($conn->query($sql)) {
+        header("Location: puzzle.php?action=stats&time=$time&moves=$moves&bg={$_POST['current_bg']}");
+        exit;
+    }
 }
 
 $conn->close();
@@ -80,13 +99,20 @@ $conn->close();
             <?php if (!empty($backgrounds)) {
                 foreach ($backgrounds as $bg) {
                     echo '<div class="gallery-item">
-                    <img class="bg-img" src="backgrounds/' . $bg['path'] . '" data-bg-id="' . $bg['id'] . '" data-bg-name="' . $bg['name'] . '" data-bg-path="' . $bg['path'] . '">
+                    <img class="bg-img" src="backgrounds/' . $bg['path'] . '" data-bg-id="' . $bg['id'] . '" data-bg-name="' . $bg['name'] . '" data-bg-path="' . $bg['path'] . '" data-bg="' . htmlspecialchars(json_encode($bg)) . '">
                     <div class="bg-name">' . $bg['name'] . '</div>
                     </div>';
                 }
             } ?>
         </div>
     </div>
+
+    <form action="puzzle.php" method="post" hidden>
+        <input id="game_time" name="time" type="hidden">
+        <input id="game_moves" name="moves" type="hidden">
+        <input id="current_bg" name="current_bg" type="hidden">
+        <button id="stats-btn" name="submit" value="stats" type="submit">
+    </form>
 
     <audio id="bg-song" src="audio/bg-song.mp3"></audio>
     <script src="puzzle.js"></script>
