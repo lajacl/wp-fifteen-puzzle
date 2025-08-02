@@ -74,6 +74,7 @@ function setupGame() {
 
     setupGallery();
     setupPrefs();
+    setupAdmin();
 
     const shuffleBtn = document.getElementById('shuffle-btn');
     shuffleBtn.addEventListener('click', shuffleTiles);
@@ -86,6 +87,8 @@ function setupGallery() {
 
     document.getElementById('bg-opt').addEventListener('click', () => {
         uploadMsg.textContent = '';
+        document.getElementById('admin-dashboard').style.display = 'none';
+        document.getElementById('pref-container').style.display = 'none';
         galleryContainer.style.display = 'initial';
     });
 
@@ -127,6 +130,8 @@ function setupPrefs() {
     });
 
     document.getElementById('pref-opt').addEventListener('click', () => {
+        document.getElementById('admin-dashboard').style.display = 'none';
+        document.getElementById('gallery-container').style.display = 'none';
         prefContainer.style.display = 'initial';
     });
 
@@ -134,6 +139,24 @@ function setupPrefs() {
         prefContainer.style.display = 'none';
 
     });
+
+}
+
+function setupAdmin() {
+    const adminDashboard = document.getElementById('admin-dashboard');
+
+    if (adminDashboard.dataset.active) {
+        document.getElementById('admin-opt').addEventListener('click', () => {
+            document.getElementById('gallery-container').style.display = 'none';
+            document.getElementById('pref-container').style.display = 'none';
+            adminDashboard.style.display = 'initial';
+            document.getElementById("defaultOpen").click();
+        });
+
+        document.getElementById('admin-close').addEventListener('click', () => {
+            adminDashboard.style.display = 'none';
+        });
+    }
 
 }
 
@@ -306,4 +329,21 @@ function playSound(filename) {
     const audio = new Audio(`audio/${filename}`);
     audio.volume = 0.5;
     audio.play();
+}
+
+function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
 }
