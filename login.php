@@ -10,88 +10,105 @@ if (isset($_GET['redirect']) && isset($_POST['play'])) {
     unset($_GET['redirect']);
 }
 
-require 'database.php';
+/* Database connection */
+$host = "localhost";
+$user = "";
+$pass = "";
+$dbname = "";
 
-$input_type;
-$username = "";
-$password = "";
-$email = "";
-$error_msg = "";
-$default_role = 'player';
+$conn = new mysqli($host, $user, $pass, $dbname);
 
-date_default_timezone_set("America/New_York");
-$datetime = date("Y-m-d H:i:s");
-
-if (isset($_POST['input_type'])) {
-    $input_type = $_POST['input_type'];
+if ($conn->connect_error) {
+    echo '<script>console.log("DATABASE Could not connect to server Connection failed:",' . json_encode($conn->connect_error) . ');</script>';
+} else {
+    echo '<script>console.log("DATABASE Connection established");</script>';
 }
+echo '<script>console.log("Server Info:",' . json_encode(mysqli_get_server_info($conn)) . ');</script>';
 
-if (isset($_POST['username'])) {
-    $username = trim($_POST['username']);
-}
+if (isset($_POST['play'])) {
+    $input_type;
+    $username = "";
+    $password = "";
+    $email = "";
+    $error_msg = "";
+    $default_role = 'player';
 
-if (isset($_POST['password'])) {
-    $password = trim($_POST['password']);
-}
+    date_default_timezone_set("America/New_York");
+    $datetime = date("Y-m-d H:i:s");
 
-if (isset($_POST['email'])) {
-    $email = trim($_POST['email']);
-}
+    if (isset($_POST['input_type'])) {
+        $input_type = $_POST['input_type'];
+    }
 
-if (isset($_GET['redirect'])) {
-    $error_msg = "Please login to play.";
-} elseif (!empty($input_type) && !empty($username) && !empty($password) && ($input_type == "login" || !empty($email))) {
-    if ($input_type == "login") {
-        $sql = "SELECT user_id, username, password_hash, role FROM users WHERE username = '{$username}'";
-        $result = $conn->query($sql);
+    if (isset($_POST['username'])) {
+        $username = trim($_POST['username']);
+    }
 
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            if (password_verify($password, $row["password_hash"])) {
-                $_SESSION['puzzle']['user_id'] = $row["user_id"];
-                $_SESSION['puzzle']['username'] = $row["username"];
-                $_SESSION['puzzle']['role'] = $row["role"];
-                session_regenerate_id(true);
+    if (isset($_POST['password'])) {
+        $password = trim($_POST['password']);
+    }
 
-                $sql = "UPDATE users SET last_login = '$datetime' WHERE user_id = '{$row["user_id"]}'";
-                $conn->query($sql);
-                $conn->close();
-                header('Location: puzzle.php');
-                exit;
+    if (isset($_POST['email'])) {
+        $email = trim($_POST['email']);
+    }
+
+    if (isset($_GET['redirect'])) {
+        $error_msg = "Please login to play.";
+    } elseif (!empty($input_type) && !empty($username) && !empty($password) && ($input_type == "login" || !empty($email))) {
+        if ($input_type == "login") {
+            $sql = "SELECT user_id, username, password_hash, role FROM users WHERE username = '{$username}'";
+            $result = $conn->query($sql);
+
+            if ($result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                if (password_verify($password, $row["password_hash"])) {
+                    $_SESSION['puzzle']['user_id'] = $row["user_id"];
+                    $_SESSION['puzzle']['username'] = $row["username"];
+                    $_SESSION['puzzle']['role'] = $row["role"];
+                    session_regenerate_id(true);
+
+                    $sql = "UPDATE users SET last_login = '$datetime' WHERE user_id = '{$row["user_id"]}'";
+                    $conn->query($sql);
+                    $conn->close();
+                    header('Location: puzzle.php');
+                    exit;
+                } else {
+                    $error_msg = "Invalid login credentials.";
+                }
             } else {
                 $error_msg = "Invalid login credentials.";
             }
-        } else {
-            $error_msg = "Invalid login credentials.";
-        }
-    } elseif ($input_type == "register") {
-        $sql = "SELECT username FROM users WHERE username = '{$username}'";
-        $result = $conn->query($sql);
+        } elseif ($input_type == "register") {
+            $sql = "SELECT username FROM users WHERE username = '{$username}'";
+            $result = $conn->query($sql);
 
-        if ($result->num_rows == 0) {
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $sql = "INSERT INTO users (username, password_hash, email, role, registration_date, last_login)
+            if ($result->num_rows == 0) {
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                $sql = "INSERT INTO users (username, password_hash, email, role, registration_date, last_login)
                 VALUES ('$username', '$hashed_password', '$email', '$default_role', '$datetime', '$datetime')";
 
-            if ($conn->query($sql) === TRUE) {
-                $last_id = $conn->insert_id;
-                $_SESSION['puzzle']['user_id'] = $last_id;
-                $_SESSION['puzzle']['username'] = $username;
-                $_SESSION['puzzle']['role'] = $default_role;
+                if ($conn->query($sql) === TRUE) {
+                    $last_id = $conn->insert_id;
+                    $_SESSION['puzzle']['user_id'] = $last_id;
+                    $_SESSION['puzzle']['username'] = $username;
+                    $_SESSION['puzzle']['role'] = $default_role;
 
-                session_regenerate_id(true);
-                $conn->close();
-                header('Location: puzzle.php');
-                exit;
+                    session_regenerate_id(true);
+                    $conn->close();
+                    header('Location: puzzle.php');
+                    exit;
+                } else {
+                    $error_msg = "Registration issue. Please try again later.";
+                }
             } else {
-                $error_msg = "Registration issue. Please try again later.";
+                $error_msg = "Username is not available.";
             }
-        } else {
-            $error_msg = "Username is not available.";
         }
+    } else {
+        $error_msg = "Please complete all fields.";
     }
-} else {
-    $error_msg = "Please complete all fields.";
+
+    unset($_POST['play']);
 }
 $conn->close();
 ?>
