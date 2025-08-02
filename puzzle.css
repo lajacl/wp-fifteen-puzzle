@@ -1,3 +1,4 @@
+/* Core Structure */
 body {
     font-family: sans-serif;
     margin: 0;
@@ -12,6 +13,12 @@ body {
     flex: 1;
 }
 
+#footer {
+    text-align: right;
+    padding: 20px;
+}
+
+/* Main Header */
 h1#title {
     text-align: center;
     color: red;
@@ -28,6 +35,7 @@ h1#title {
     padding: 20px;
 }
 
+/* Game Board */
 #grid-board {
     width: 400px;
     height: 400px;
@@ -78,26 +86,25 @@ button#shuffle-btn:hover {
     border: 3px solid indianred;
 }
 
-#footer {
-    text-align: right;
-    padding: 20px;
-}
-
+/* Menu Options */
+#pref-container,
 #gallery-container {
     display: none;
     position: fixed;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 50%;
-    height: 50%;
+    width: 75%;
+    height: 75%;
     background-color: white;
     border: 4px solid lightgray;
     border-radius: 10px;
     font-weight: bold;
     overflow: auto;
+    color: #125982;
 }
 
+#pref-header,
 #gallery-header {
     color: #125982;
     text-align: center;
@@ -107,6 +114,7 @@ button#shuffle-btn:hover {
     padding: 20px;
 }
 
+#pref-header h3,
 #gallery-header h3 {
     margin: 0;
 }
@@ -120,6 +128,31 @@ button#shuffle-btn:hover {
 
 }
 
+#pref {
+    display: grid;
+    grid-template-columns: auto auto;
+    column-gap: 5%;
+    row-gap: 25px;
+    padding: 25px;
+}
+
+#pref select {
+    max-width: 25%;
+}
+
+#pref img {
+    height: 100px;
+    margin-left: 25px;
+    border: 2px solid black;
+}
+
+#pref button#prefs-btn {
+    width: fit-content;
+    margin: 20px auto 0 auto;
+    grid-column: span 2;
+}
+
+#pref-close,
 #gallery-close {
     position: absolute;
     top: 10px;
@@ -137,15 +170,16 @@ button#shuffle-btn:hover {
     box-sizing: border-box;
 }
 
-.bg-img {
+#gallery .bg-img {
     width: 100%;
 }
 
-.bg-name {
+#gallery .bg-name {
     padding: 10px;
     width: 100%;
 }
 
+/* Menu */
 #menu {
     position: absolute;
     top: 15px;
@@ -153,6 +187,7 @@ button#shuffle-btn:hover {
     font-weight: bold;
 }
 
+#prefs-btn,
 #menu button#menu-btn {
     min-width: 100px;
     font-weight: bold;
@@ -194,10 +229,11 @@ button#shuffle-btn:hover {
     width: max-content;
 }
 
+#prefs-btn:hover,
 #menu:hover #menu-btn {
     color: greenyellow;
 }
 
-#menu #logout-btn {
+#menu #logout-opt {
     all: unset;
 }

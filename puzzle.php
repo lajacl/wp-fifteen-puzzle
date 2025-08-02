@@ -15,6 +15,8 @@ require 'database.php';
 require 'uploader.php';
 
 $username = $_SESSION['puzzle']['username'];
+
+/* Get all backgrounds */
 $backgrounds = [];
 
 $sql = "SELECT image_id, image_name, image_url FROM background_images WHERE is_active = TRUE ORDER BY image_id DESC";
@@ -25,6 +27,40 @@ while ($row = $result->fetch_assoc()) {
     $backgrounds[] = $bg;
 }
 
+/* Get user preferences */
+$pref_size;
+$pref_bg_id;
+$pref_sound;
+$pref_anim;
+
+$sql = "SELECT * from user_preferences where user_id = {$_SESSION['puzzle']['user_id']} LIMIT 1 ";
+
+if ($result = $conn->query($sql)) {
+    $row = $result->fetch_assoc();
+    if (!empty($row)) {
+        $pref_size = $row['default_puzzle_size'];
+        $pref_bg_id = $row['preferred_background_image_id'];
+        $pref_sound = $row['sound_enabled'];
+        $pref_anim = $row['animations_enabled'];
+    }
+}
+
+/* Update user preferences */
+if (isset($_POST['submit']) && $_POST['submit'] == 'prefs') {
+    unset($_POST['submit']);
+
+    $sql = "INSERT INTO user_preferences (user_id, default_puzzle_size, preferred_background_image_id, sound_enabled, animations_enabled) 
+        VALUES('{$_SESSION['puzzle']['user_id']}', '4x4', '{$_POST['pref-bg-id']}', '{$_POST['pref-sound']}', '{$_POST['pref-anim']}') ON DUPLICATE KEY UPDATE
+        user_id = VALUES(user_id),
+        default_puzzle_size = VALUES(default_puzzle_size), 
+        preferred_background_image_id = VALUES(preferred_background_image_id), 
+        sound_enabled = VALUES(sound_enabled), 
+        animations_enabled = VALUES(animations_enabled)";
+
+    $conn->query($sql);
+}
+
+/* Update user game stats */
 if (isset($_POST['submit']) && $_POST['submit'] == 'stats') {
     unset($_POST['submit']);
 
@@ -62,18 +98,20 @@ $conn->close();
 </head>
 
 <body>
+    <!-- Menu -->
     <div id="menu">
         <?php echo $username; ?>
         <button id="menu-btn">Menu</button>
         <div id="menu-opts">
             <form action="login.php" method="post">
-                <a id="account-opt">View My Account</a>
                 <a id="bg-opt">Change Background</a>
-                <a><button id="logout-btn" type="submit" id="btn" name="logout" value="true">Logout</button></a>
+                <a id="pref-opt">My Preferences</a>
+                <a><button id="logout-opt" type="submit" id="btn" name="logout" value="true">Logout</button></a>
             </form>
         </div>
     </div>
 
+    <!-- Game Title & Board -->
     <div id="main">
         <h1 id="title">Fifteen Puzzle</h1>
         <div id="message">&nbsp;</div>
@@ -81,11 +119,13 @@ $conn->close();
         <div id="shuffle"><button id="shuffle-btn">Shuffle</button></div>
     </div>
 
+    <!-- Footer -->
     <div id="footer">
         <a href="https://validator.w3.org/"><img src="images/w3c-xhtml.png"></a>
         <a href="https://jigsaw.w3.org/css-validator/"><img src="images/w3c-css.png"></a>
     </div>
 
+    <!-- Backgrounds Gallery & Upload -->
     <div id="gallery-container">
         <div id="gallery-header">
             <h3>Choose a Puzzle Background Below<br>
@@ -111,6 +151,58 @@ $conn->close();
         </div>
     </div>
 
+    <!-- User Preferences -->
+    <div id="pref-container">
+        <div id="pref-header">
+            <h3>Game Preferences</h3>
+            <span id="pref-close">&times;</span>
+        </div>
+        <form method="post" action="puzzle.php">
+            <div id="pref">
+                <label for="pref-size">Puzzle Size:</label>
+                <select id="pref-size" name="pref-size" required disabled>
+                    <option value="4x4">4x4</option>
+                </select>
+
+                <label for="pref-bg">Background:</label>
+                <?php
+                $pref_bg_path;
+                echo '<div>';
+                echo '<select id="pref-bg" name="pref-bg-id">';
+                echo '<option value="">None</option>';
+                if (!empty($backgrounds)) {
+                    foreach ($backgrounds as $bg) {
+                        echo '<option value="' . $bg['id'] . '" data-bg="' . htmlspecialchars(json_encode($bg)) . '"' . ((!empty($pref_bg_id) && $bg['id'] === $pref_bg_id) ? ' selected' : '') . '>' . $bg['name'] . '</option>';
+                        if ($bg['id'] == $pref_bg_id)
+                            $pref_bg_path = $bg['path'];
+                    }
+                }
+                echo '</select>';
+                echo '<img id="pref-bg-img" ' . (!empty($pref_bg_path) ? 'src="backgrounds/' . $pref_bg_path . '"' : "hidden") . '>';
+                echo '</div>';
+                ?>
+
+                <span>Sound:</span>
+                <div>
+                    <label for="sound-on"><input id="sound-on" type="radio" name="pref-sound" value="1" required <?php if (empty($pref_sound) || $pref_sound == 1)
+                        echo ' checked'; ?>>On</label>
+                    <label for="sound-off"><input id="sound-off" type="radio" name="pref-sound" value="0" required <?php if ($pref_sound == 0)
+                        echo ' checked'; ?>>Off</label>
+                </div>
+
+                <span>Animations:</span>
+                <div><label for="anim-on"><input id="anim-on" type="radio" name="pref-anim" value="1" required <?php if (empty($pref_anim) || $pref_anim == 1)
+                    echo ' checked'; ?>>On</label>
+                    <label for="anim-off"><input id="anim-off" type="radio" name="pref-anim" value="0" required <?php if ($pref_anim === 0)
+                        echo ' checked'; ?>>Off</label>
+                </div>
+
+                <button id="prefs-btn" type="submit" name="submit" value="prefs">Save</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Hidden Puzzle Data Form -->
     <form action="puzzle.php" method="post" hidden>
         <input id="game_time" name="time" type="hidden">
         <input id="game_moves" name="moves" type="hidden">
@@ -118,6 +210,7 @@ $conn->close();
         <button id="stats-btn" name="submit" value="stats" type="submit">
     </form>
 
+    <!-- External File Linking -->
     <audio id="bg-song" src="audio/bg-song.mp3"></audio>
     <script src="puzzle.js"></script>
 </body>

@@ -73,6 +73,7 @@ function setupGame() {
     }
 
     setupGallery();
+    setupPrefs();
 
     const shuffleBtn = document.getElementById('shuffle-btn');
     shuffleBtn.addEventListener('click', shuffleTiles);
@@ -80,17 +81,15 @@ function setupGame() {
 
 function setupGallery() {
     const galleryContainer = document.getElementById('gallery-container');
-    const galleryClose = document.getElementById('gallery-close');
-    const backgroundOpt = document.getElementById('bg-opt');
     const bgImages = document.getElementsByClassName('bg-img');
     const uploadMsg = document.getElementById('upload-msg');
 
-    backgroundOpt.addEventListener('click', () => {
+    document.getElementById('bg-opt').addEventListener('click', () => {
         uploadMsg.textContent = '';
-        galleryContainer.style.display = 'block';
+        galleryContainer.style.display = 'initial';
     });
 
-    galleryClose.addEventListener('click', () => {
+    document.getElementById('gallery-close').addEventListener('click', () => {
         galleryContainer.style.display = 'none';
         uploadMsg.textContent = '';
 
@@ -113,6 +112,29 @@ function setupGallery() {
             galleryContainer.style.display = 'none';
         });
     }
+}
+
+function setupPrefs() {
+    const prefContainer = document.getElementById('pref-container');
+    const prefBGSelect = document.getElementById('pref-bg');
+    const prefBGImg = document.getElementById('pref-bg-img')
+
+    prefBGSelect.addEventListener('change', () => {
+        selectedOption = prefBGSelect.options[prefBGSelect.selectedIndex];
+        selectedBGPath = JSON.parse(selectedOption.dataset.bg).path;
+        prefBGImg.src = `backgrounds/${selectedBGPath}`;
+        prefBGImg.hidden = false;
+    });
+
+    document.getElementById('pref-opt').addEventListener('click', () => {
+        prefContainer.style.display = 'initial';
+    });
+
+    document.getElementById('pref-close').addEventListener('click', () => {
+        prefContainer.style.display = 'none';
+
+    });
+
 }
 
 function shuffleTiles() {
