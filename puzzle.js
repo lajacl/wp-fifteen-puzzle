@@ -20,10 +20,14 @@ window.onload = function () {
         solveTime = urlParams.get('time');
         movesCount = urlParams.get('moves');
         background = JSON.parse(urlParams.get('bg'));
+        const wins = urlParams.get('wins');
         state = 'end';
 
         setupGame();
-        message.textContent = `🎉 You solved the puzzle and won! Time: ${solveTime}s | Moves: ${movesCount}`;
+        message.innerHTML = `🎉 You solved the puzzle and won! Time: ${solveTime}s | Moves: ${movesCount}`;
+        if (wins == 1 || wins % 10 == 0) {
+            message.innerHTML += (wins == 1) ? '<br>🥇 You earned a First Win badge!' : `<br>🏅 You earned a badge for ${wins} wins!`;
+        }
         const tiles = document.getElementsByClassName('tile');
         for (const tile of tiles) {
             tile.removeEventListener('click', moveTile);

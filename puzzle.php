@@ -33,14 +33,18 @@ if (isset($_POST['submit']) && $_POST['submit'] == 'stats') {
     $bg_id = json_decode($_POST['current_bg'], true)['id'];
     date_default_timezone_set("America/New_York");
     $date = date("Y-m-d");
+    $games_won = null;
 
     $sql = "INSERT INTO game_stats (user_id, puzzle_size, time_taken_seconds, moves_count, background_image_id, win_status, game_date)
         VALUES ('{$_SESSION['puzzle']['user_id']}', '4x4', '$time', '$moves', '$bg_id', true, '$date')";
 
     if ($conn->query($sql)) {
-        header("Location: puzzle.php?action=stats&time=$time&moves=$moves&bg={$_POST['current_bg']}");
-        exit;
+        $sql = "SELECT count(*) as games_won from game_stats where user_id = {$_SESSION['puzzle']['user_id']} and win_status = true";
+        $games_won = $conn->query($sql)->fetch_assoc()['games_won'];
     }
+
+    header("Location: puzzle.php?action=stats&time=$time&moves=$moves&bg={$_POST['current_bg']}&wins=$games_won");
+    exit;
 }
 
 $conn->close();
@@ -71,7 +75,7 @@ $conn->close();
     </div>
 
     <div id="main">
-        <h1 id="title">Bob's Burgers Sliding Puzzle</h1>
+        <h1 id="title">Fifteen Puzzle</h1>
         <div id="message">&nbsp;</div>
         <div id="grid-board"></div>
         <div id="shuffle"><button id="shuffle-btn">Shuffle</button></div>
